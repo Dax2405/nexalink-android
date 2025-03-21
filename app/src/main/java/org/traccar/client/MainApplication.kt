@@ -23,6 +23,13 @@ import android.app.Notification
 import android.graphics.Color
 import android.os.Build
 import android.app.Activity
+import android.content.ContentValues.TAG
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.util.Log
+import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
 
 open class MainApplication : MultiDexApplication() {
 
@@ -32,6 +39,8 @@ open class MainApplication : MultiDexApplication() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             registerChannel()
         }
+        ContextCompat.startForegroundService(this, Intent(this, Flic2Service::class.java))
+        subscribeDevice()
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -49,5 +58,34 @@ open class MainApplication : MultiDexApplication() {
     companion object {
         const val PRIMARY_CHANNEL = "default"
     }
+    private fun subscribeDevice() {
+        val deviceId = getDeviceId(this)
+        Log.d(TAG, "Device ID: $deviceId")
 
+        if (deviceId.isNotEmpty()) {
+            val subscribeUrl = "http://93.127.213.145:8007/devices/$deviceId/subscribe"
+            RequestManager.sendRequestAsync(subscribeUrl, object : RequestManager.RequestHandler {
+                override fun onComplete(success: Boolean) {
+                    if (success) {
+                        Log.d(TAG, "Subscription successful")
+
+                        StatusActivity.addMessage("Subscripción exitosa al inicio")
+                    } else {
+                        Log.d(TAG, "Subscription successful")
+
+                        StatusActivity.addMessage("Fallo en la subscripción al inicio")
+                    }
+                }
+            })
+        } else {
+            Log.d(TAG, "Device ID not found")
+
+            StatusActivity.addMessage("ID de dispositivo no encontrado")
+        }
+    }
+
+    private fun getDeviceId(context: Context): String {
+        val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        return sharedPreferences.getString(MainFragment.KEY_DEVICE, "") ?: ""
+    }
 }
