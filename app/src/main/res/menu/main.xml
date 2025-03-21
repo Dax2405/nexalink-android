@@ -9,8 +9,9 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/info"
-        android:title="@string/menu_info"
+        android:id="@+id/button_configure_flic"
+        android:title="Botón"
         app:showAsAction="ifRoom" />
+
 
 </menu>
